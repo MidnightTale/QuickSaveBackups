@@ -9,14 +9,14 @@ import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class QuickSave extends JavaPlugin {
     public YamlConfiguration config;
@@ -28,9 +28,10 @@ public class QuickSave extends JavaPlugin {
     public Updater updater = new Updater(this);
 
     public String tag;
-    public BukkitTask autoBackup;
-
+    public ScheduledTask autoBackup;
+    public static QuickSave instance;
     public void onEnable() {
+        instance = this;
         Bukkit.getLogger().info("[QuickSave] RockyHawk's QuickSave v" + this.getDescription().getVersion() + " Plugin Loading...");
 
         //change version number to latest
@@ -120,31 +121,30 @@ public class QuickSave extends JavaPlugin {
         }
     }
 
-    public void callRunnable(){
-        //cancel if not cancelled
-        if(autoBackup != null){
-            if(!autoBackup.isCancelled()){
+    public void callRunnable() {// Cancel if not cancelled
+        if (autoBackup != null) {
+            if (!autoBackup.isCancelled()) {
                 autoBackup.cancel();
             }
         }
-        //return if auto backup is disabled
-        if(!config.getBoolean("config.autoBackup")){
+
+        // Return if auto backup is disabled
+        if (!config.getBoolean("config.autoBackup")) {
             return;
         }
-        //run task
-        autoBackup = new BukkitRunnable(){
-            @Override
-            public void run(){
-                if(autoBackupCounter >= config.getStringList("config.worldsToBackup").size()-1){
-                    autoBackupCounter=0;
-                }else{
-                    autoBackupCounter+=1;
-                }
-                List<String> backupWorlds = new ArrayList();
-                backupWorlds.add(config.getStringList("config.worldsToBackup").get(autoBackupCounter));
-                createNewBackup(backupWorlds);
-                getServer().getConsoleSender().sendMessage(colourize(tag + ChatColor.AQUA + "Backing up world " + ChatColor.WHITE + config.getStringList("config.worldsToBackup").get(autoBackupCounter) + "..."));
+
+        long intervalMillis = TimeUnit.SECONDS.toMillis(config.getInt("config.backupTickInterval")) / config.getStringList("config.worldsToBackup").size();
+
+        autoBackup =  Bukkit.getAsyncScheduler().runAtFixedRate(instance,task -> {
+            if (autoBackupCounter >= config.getStringList("config.worldsToBackup").size() - 1) {
+                autoBackupCounter = 0;
+            } else {
+                autoBackupCounter += 1;
             }
-        }.runTaskTimer(this, (config.getInt("config.backupTickInterval")/config.getStringList("config.worldsToBackup").size()), (config.getInt("config.backupTickInterval")/config.getStringList("config.worldsToBackup").size())); //20 ticks == 1 second (5 ticks = 0.25 of a second)
+            List<String> backupWorlds = new ArrayList<>();
+            backupWorlds.add(config.getStringList("config.worldsToBackup").get(autoBackupCounter));
+            createNewBackup(backupWorlds);
+            getServer().getConsoleSender().sendMessage(colourize(tag + ChatColor.AQUA + "Backing up world " + ChatColor.WHITE + config.getStringList("config.worldsToBackup").get(autoBackupCounter) + "..."));
+        }, 0, intervalMillis, TimeUnit.MILLISECONDS);
     }
 }

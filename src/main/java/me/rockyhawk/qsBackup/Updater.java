@@ -89,33 +89,33 @@ public class Updater {
         }
     }
 
-    private void getLatestVersion(boolean sendMessages){
+    private void getLatestVersion(boolean sendMessages) {
         //check for null
-        if(cachedLatestVersion.equals("null")){
+        if (cachedLatestVersion.equals("null")) {
             cachedLatestVersion = plugin.getDescription().getVersion();
         }
 
         //using an array allows editing while still being final
-        new BukkitRunnable(){
-          public void run(){
-              HttpURLConnection connection;
-              try {
-                  connection = (HttpURLConnection) new URL("https://raw.githubusercontent.com/" + GITHUB_USERNAME + "/" + GITHUB_REPOSITORY + "/master/resource/plugin.yml").openConnection();
-                  connection.connect();
-                  cachedLatestVersion = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine().split("\\s")[1];
-                  connection.disconnect();
-              } catch (IOException ignore) {
-                  Bukkit.getConsoleSender().sendMessage("[" + PLUGIN_NAME + "]" + ChatColor.RED + " Could not access github.");
-              }
-          }
-        }.runTask(plugin);
+        Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+            HttpURLConnection connection;
+            try {
+                connection = (HttpURLConnection) new URL("https://raw.githubusercontent.com/midnighttale/" + GITHUB_REPOSITORY + "/master/resource/plugin.yml").openConnection();
+                connection.connect();
+                cachedLatestVersion = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine().split("\\s")[1];
+                connection.disconnect();
+            } catch (IOException ignore) {
+                Bukkit.getConsoleSender().sendMessage("[" + PLUGIN_NAME + "]" + ChatColor.RED + " Could not access github.");
+            }
+        });
 
-        if(cachedLatestVersion.contains("-")){
-            if(sendMessages) {
+        if (cachedLatestVersion.contains("-")) {
+            if (sendMessages) {
                 Bukkit.getConsoleSender().sendMessage("[" + PLUGIN_NAME + "]" + ChatColor.RED + " Cannot check for update.");
             }
         }
     }
+
+
 
     private void downloadFile(String latestVersion, String pluginFileName) {
         BufferedInputStream in = null;
