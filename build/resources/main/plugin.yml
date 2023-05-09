@@ -1,4 +1,4 @@
-version: ${version}
+version: 1.4.0.0
 name: QuickSave
 main: me.rockyhawk.qsBackup.QuickSave
 author: RockyHawk

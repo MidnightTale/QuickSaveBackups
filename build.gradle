@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'me.rockyhawk'
-version = "2.3"
+version = "1.4.0.0"
 
 repositories {
     mavenCentral()
