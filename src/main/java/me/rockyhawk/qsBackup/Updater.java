@@ -18,8 +18,6 @@ public class Updater {
 
     private final String PLUGIN_NAME = "QuickSave"; //The plugin namey
     private final String FILE_NAME = "Quick.Save.jar"; //The exact file name that the file appears as on Github. It should be the same name between versions.
-    private final String GITHUB_USERNAME = "rockyhawk64"; //The username the repository is under
-    private final String GITHUB_REPOSITORY = "QuickSaveBackups"; //Repository name on Github
     public boolean MINOR_UPDATES_ONLY = false; //Uses 4 number versions, 1.2.X.X <-- the X numbers indicate minor versions. If true it will only update if a minor update is available
     public String DOWNLOAD_VERSION_MANUALLY = null; //if this is set to something by your plugin, it will download that version on restart. can be a version number, 'latest' or 'cancel'
 
@@ -99,7 +97,7 @@ public class Updater {
         Bukkit.getAsyncScheduler().runNow(plugin, task -> {
             HttpURLConnection connection;
             try {
-                connection = (HttpURLConnection) new URL("https://raw.githubusercontent.com/midnighttale/" + GITHUB_REPOSITORY + "/master/resource/plugin.yml").openConnection();
+                connection = (HttpURLConnection) new URL("https://raw.githubusercontent.com/MidnightTale/QuickSaveBackups" + "/master/src/main/resources/plugin.yml").openConnection();
                 connection.connect();
                 cachedLatestVersion = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine().split("\\s")[1];
                 connection.disconnect();
@@ -123,7 +121,7 @@ public class Updater {
 
         try {
             this.plugin.getLogger().info("Downloading new update: " + "v" + latestVersion);
-            URL fileUrl = new URL("https://github.com/" + GITHUB_USERNAME + "/" + GITHUB_REPOSITORY + "/releases/download/" + latestVersion + "/" + FILE_NAME);
+            URL fileUrl = new URL("https://raw.githubusercontent.com/MidnightTale/QuickSaveBackups" + "/releases/download/" + latestVersion + "/" + FILE_NAME);
             int fileLength = fileUrl.openConnection().getContentLength();
             in = new BufferedInputStream(fileUrl.openStream());
             fout = new FileOutputStream(new File(new File(".").getAbsolutePath() + "/plugins/", pluginFileName));
